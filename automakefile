@@ -1,0 +1,129 @@
+##
+## EPITECH PROJECT, 2020
+## automakefile
+## File description:
+## automakefile
+##
+
+#!/bin/sh
+
+if [ ! -z $2 ]
+then
+	exit 84
+fi
+
+if [ ! -f $1 ]
+then
+	exit 84
+fi
+
+IFS=";"
+counter=0
+while read line
+	do
+		len=($line)
+        if [[ ${len[0]} == *.c ]]
+        then
+                src_files[counter]=${len[0]}
+		((counter++))
+        fi
+	if [[ ${len[0]} == "PROJECT_DIR" ]]
+	then
+		my_path=${len[1]}
+	fi
+        if [[ ${len[0]} == "SOURCES_DIR" ]]
+        then
+                src=${len[1]}
+        fi
+        if [[ ${len[0]} == "HEADERS_DIR" ]]
+        then
+                headers=${len[1]}
+        fi
+        if [[ ${len[0]} == "EXEC" ]]
+        then
+                binary=${len[1]}
+        fi
+        if [[ ${len[0]} == "CC" ]]
+        then
+                compile=${len[1]}
+        fi
+        if [[ ${len[0]} == "CFLAGS" ]]
+        then
+                cflags=${len[1]}
+        fi
+        if [[ ${len[0]} == "LIBS_DIR" ]]
+        then
+                lib=${len[1]}
+        fi
+        if [[ ${len[0]} == "BCK_DIR" ]]
+        then
+                backup=${len[1]}
+        fi
+        if [[ ${len[0]} == "ZIP" ]]
+        then
+                zip=${len[1]}
+        fi
+        if [[ ${len[0]} == "UNZIP" ]]
+        then
+                unzip=${len[1]}
+        fi
+        if [[ ${len[0]} == "ZIPFLAGS" ]]
+        then
+                zflags=${len[1]}
+        fi
+done < $1
+unzip_flags="-xvf"
+if [ ! -d "$my_path/$backup" ]
+then
+	mkdir -p $my_path/$backup
+fi
+if [ -z $my_path ]
+then
+	exit 84
+fi
+if [ -z $compile ]
+then
+        compile=gcc
+fi
+if [ -z $cflags ]
+then
+        cflags=-Wall
+fi
+echo 1_0 > $my_path/.version
+touch $my_path/Makefile
+((counter--))
+count=0
+while [ $count -le $counter ]
+	do
+        if [[ $count == 0 ]]
+        then
+		echo -e "SRC\t=\t${src_files[count]}\t\\" >> $my_path/Makefile
+		((count++))
+	else
+		echo -e "\t\t${src_files[count]}\t\\" >> $my_path/Makefile
+                ((count++))
+	fi
+done
+echo -e "\nOBJ\t=\t\$(SRC:.c=.o)\n" >> $my_path/Makefile
+echo -e "NAME\t=\t$binary\n" >> $my_path/Makefile
+echo -e "CC\t=\t$compile\n" >> $my_path/Makefile
+echo -e "CFLAGS\t=\t$cflags\n" >> $my_path/Makefile
+echo -e "ZIP\t=\t$zip\n" >> $my_path/Makefile
+echo -e "ZIPFLAGS\t=\t$zflags\n" >> $my_path/Makefile
+echo -e "UNZIP\t=\t$unzip\n" >> $my_path/Makefile
+echo -e "BCK_DIR\t=\t$backup\n" >> $my_path/Makefile
+echo -e "LIBS_DIR\t=\t$lib\n" >> $my_path/Makefile
+echo -e "HEADERS_DIR\t=\t$headers\n\n" >> $my_path/Makefile
+echo -e "all:\t\$(NAME)\n" >> $my_path/Makefile
+echo -e "\$(NAME):\t\$(OBJ)\n" >> $my_path/Makefile
+echo -e "\t\$(CC) -o \$(NAME) \$(OBJ) \$(CFLAGS) \$(LDFLAGS)\n" >> $my_path/Makefile
+echo -e "clean:\n\trm -f \$(OBJ)\n\trm -f *.gcno\n" >> $my_path/Makefile
+echo -e "fclean:\tclean\n\trm -f \$(NAME)\n" >> $my_path/Makefile
+echo -e "re:\tfclean all\n" >> $my_path/Makefile
+version_manager=$(<$my_path/.version)
+echo -e "archive:\n\t$zip $zflags ./$backup/backup_$version_manager.$zip \$(SRC)" >> $my_path/Makefile
+echo -e "\nrevert:\n\t$unzip $unzip_flags ./$backup/backup_$version_manager.$zip\n" >> $my_path/Makefile
+echo -e "num:\n\t@echo \"$version_manager\"" >> $my_path/Makefile
+echo -e "\ndelete:\n\trm - f ./$backup/backup_$version_manager.$zip\n" >> $my_path/Makefile
+echo -e ".PHONY:\tall clean fclean re archive revert num delete" >> $my_path/Makefile
+exit 0
